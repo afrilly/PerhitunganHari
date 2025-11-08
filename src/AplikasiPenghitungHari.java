@@ -1,21 +1,78 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
+import java.awt.HeadlessException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.temporal.ChronoField;
+import java.util.Date;
+import java.util.Locale;
+import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 
+
+private Object tanggalPertama;
+    private Object tanggalKedua;
+    private String selisihHari;
 /**
  *
  * @author ASUS
  */
 public class AplikasiPenghitungHari extends javax.swing.JFrame {
+    
+    //Variabel untuk simpan tanggal klik pertama dan kedua
+    private Date tanggalPertama = null;
+    private Date tanggalKedua = null;
+
+    private String selisihHari;
+    
 
     /**
      * Creates new form AplikasiPenghitungHari
      */
     public AplikasiPenghitungHari() {
         initComponents();
+        isiComboBulan();
+        setTitle("Aplikasi Penghitung Hari");
+        setLocaltionRelativeTo(null);
+        setResizable(false);
+        pack();
+        
+        //Event klik tanggal di Jcalender
+        jCalendar1.getDayChooser().addPropertyChangeListener("day", evt -> {
+            handleTanggalDipilih();
+        });
+        
+    }
+    
+    // Isi combo box bulan
+    private void isiComboBulan() {
+        jComboBox1.removeAllItems();
+        String[] bulan = {"Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                          "Juli", "Agustus", "September", "Oktober", "November", "Desember"};
+        for (String b : bulan) {
+            jComboBox1.addItem(b);
+        }
+        jComboBox1.setSelectedIndex(0);
+        jSpennerTahun.setValue(2025);
+    }
+    
+    //cek tahun kabisat
+    private boolean isKabisat(int tahun) {
+        return (tahun % 4 == 0 && tahun % 100 != 0) || (tahun % 400 == 0);
+        
     }
 
+    //format hari ke bahasa indonesia 
+    private String formatHari(String hari) {
+        return switch (hari.toUpperCase()) {
+            case "MONDAY" -> "Senin";
+            case "TUESDAY" -> "Selasa";
+            case "WEDNESDAY" -> "Rabu";
+            case "THURSDAY" -> "Kamis";
+            case "FRIDAY" -> "jumat";
+            case "SATURDAY" -> "Sabtu";
+            case "SUNDAY" -> "Minggu";
+            default -> hari;
+        };
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -221,6 +278,11 @@ public class AplikasiPenghitungHari extends javax.swing.JFrame {
         btnHitungSelisih.setBackground(new java.awt.Color(255, 204, 204));
         btnHitungSelisih.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnHitungSelisih.setText("Hitung Selisih");
+        btnHitungSelisih.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnHitungSelisihActionPerformed(evt);
+            }
+        });
 
         btnReset2.setBackground(new java.awt.Color(102, 102, 102));
         btnReset2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
@@ -234,6 +296,11 @@ public class AplikasiPenghitungHari extends javax.swing.JFrame {
         btnKeluar.setBackground(new java.awt.Color(102, 102, 102));
         btnKeluar.setFont(new java.awt.Font("Segoe UI", 3, 14)); // NOI18N
         btnKeluar.setText("Keluar");
+        btnKeluar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnKeluarActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -345,19 +412,85 @@ public class AplikasiPenghitungHari extends javax.swing.JFrame {
     }//GEN-LAST:event_jComboBox1ActionPerformed
 
     private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
-        // TODO add your handling code here:
+        jComboBox1.setSelectedIndex(0);
+        jSpennerTahun.setValue(2025);
+        BulanTahun.setText("");
+        TahunKeluar.setText("");
+        HariPertama.setText("");
+        HariTerakhir.setText("");
     }//GEN-LAST:event_btnResetActionPerformed
 
     private void btnHitungActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHitungActionPerformed
-    try {
-        int bulan = jComboBox1.getSelectedIndex() + 1;
-        int tahun = (int) jSpennerTahun.getValue();
-        
-        LocalDate tanggal = LocalDate.of(tahun,)
-        
-    }
-    }//GEN-LAST:event_btnHitungActionPerformed
+        try {
+            int bulan = jComboBox1.getSelectedIndex() + 1;
+            int tahun = (int) jSpennerTahun.getValue();
 
+            LocalDate tanggal = LocalDate.of(tahun, bulan, 1);
+            int jumlahHari = tanggal.lengthOfMonth();
+            String haripertama = tanggal.getDayOfWeek().toString();
+            String hariterakhir = tanggal.withDayOfMonth(jumlahHari).getDayOfWeek().toString();
+
+            //tampilan bulan dan tahun
+            BulanTahun.setText("Bulan: " + jComboBox1.getSelectedItem() + " " + tahun);
+
+            //tampilkan tahun + status kabisat
+            TahunKeluar.setText("Tahun: " + tahun + (isKabisat(tahun) ? " (Kabisat) " : " (Bukan Kabisat)"));
+
+            //hari pertama dan terakhir 
+            HariPertama.setText("Hari Pertama: " + formatHari(HariPertama));
+            HariTerakhir.setText("Hari Terakhir: " + formatHari(HariTerakhir));
+
+            JOptionPane.showMessageDialog(this,
+                    "Jumlah hari pada " + jComboBox1.getSelectedItem() + " " + tahun
+                    + "adalah " + jumlahHari + "hari.",
+                    "Hasil Perhitungan", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (HeadlessException e) {
+            JOptionPane.showMessageDialog(this, "Terjadi Kesalahan Input!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btnHitungActionPerformed
+        //klik 2 kali tanggal hitung selisih 
+
+        private void handletanggalDipilih() {
+            Date tanggalDipilih = jCalendar1.getDate();
+            SimpleDateFormat sdf = new SimpleDateFormat("d MMMM yyyy", new Locale("id", "ID"));
+
+            if (tanggalPertama == null) {
+                // klik pertama
+                tanggalPertama = tanggalDipilih;
+                DariTahun.setText("Dari: " + sdf.format(tanggalPertama));
+                SampaiTahun.setText("");
+                TotalSelisih.setText("");
+            } else if (tanggalKedua == null) {
+                // klik kedua
+                tanggalKedua = tanggalDipilih;
+                SampaiTahun.setText("Sampai: " + sdf.format(tanggalKedua));
+
+                LocalDate dari = tanggalPertama.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+                LocalDate sampai = tanggalKedua.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+
+                long selisihHari = Math.abs(ChronoUnit.DAYS.between(dari, sampai));
+                TotalSelisih.setText("Selisih: " + selisihHari + " hari");
+
+                JOptionPane.showMessageDialog(this,
+                        "Selisih antara " + sdf.format(tanggalPertama) + " dan "
+                        + sdf.format(tanggalKedua) + " adalah " + selisihHari + " hari.",
+                        "Hasil Selisih", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                // klik ketiga → reset
+                tanggalPertama = tanggalDipilih;
+                tanggalKedua = null;
+                DariTahun.setText("Dari: " + sdf.format(tanggalPertama));
+                SampaiTahun.setText("");
+                TotalSelisih.setText("");
+            }
+        }
+
+        private String formatHari(JTextField HariPertama) {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+    }
     private void TahunKeluarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TahunKeluarActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_TahunKeluarActionPerformed
@@ -371,43 +504,69 @@ public class AplikasiPenghitungHari extends javax.swing.JFrame {
     }//GEN-LAST:event_HariPertamaActionPerformed
 
     private void btnReset2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReset2ActionPerformed
-        // TODO add your handling code here:
+        DariTahun.setText("");
+        SampaiTahun.setText("");
+        TotalSelisih.setText("");
+        tanggalPertama = null;
+        tanggalKedua = null;
     }//GEN-LAST:event_btnReset2ActionPerformed
+
+    private void btnHitungSelisihActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHitungSelisihActionPerformed
+        try {
+            // Ambil dua tanggal dari dua kalender
+            Date tanggalDari = jCalendar1.getDate();
+            Date tanggalSampai = jCalendar1.getDate();
+
+            if (tanggalDari == null || tanggalSampai == null) {
+                JOptionPane.showMessageDialog(null, "Silakan pilih kedua tanggal terlebih dahulu!");
+                return;
+            }
+
+            SimpleDateFormat sdf = new SimpleDateFormat("d MMMM yyyy", new Locale("id", "ID"));
+            LocalDate dari = tanggalDari.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+            LocalDate sampai = tanggalSampai.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+
+            DariTahun.setText("Dari: " + sdf.format(tanggalDari));
+            SampaiTahun.setText("Sampai: " + sdf.format(tanggalSampai));
+            TotalSelisih.setText("Selisih: " + selisihHari + "hari");
+
+            JOptionPane.showMessageDialog(null,
+                    "Selisih antara " + sdf.format(tanggalDari) + " dan "
+                    + sdf.format(tanggalSampai) + "adalah" + selisihHari + " hari. ",
+                    "Hasil Selisih", JOptionPane.INFORMATION_MESSAGE);
+        } catch (HeadlessException e) {
+            JOptionPane.showMessageDialog(null, "Terjadi kesalahan dalam menghitung selisih!");
+        }
+
+    }//GEN-LAST:event_btnHitungSelisihActionPerformed
+
+    private void btnKeluarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnKeluarActionPerformed
+        int confirm = JOptionPane.showConfirmDialog(null,
+                "Apakah Anda yakin ingin keluar?",
+                "Konfirmasi", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            System.exit(0);
+        }
+    }//GEN-LAST:event_btnKeluarActionPerformed
 
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(AplikasiPenghitungHari.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(AplikasiPenghitungHari.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(AplikasiPenghitungHari.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(AplikasiPenghitungHari.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
+    /* Set the Nimbus look and feel */
+    // (boleh dikosongkan atau dibiarkan oleh NetBeans)
 
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new AplikasiPenghitungHari().setVisible(true);
-            }
-        });
-    }
+    /* Create and display the form */
+    java.awt.EventQueue.invokeLater(new Runnable() {
+        public void run() {
+            new AplikasiPenghitungHari().setVisible(true);
+
+        }
+    });
+}
+
+
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel AplikasiPerhitunganHari;
@@ -436,4 +595,30 @@ public class AplikasiPenghitungHari extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel4;
     private javax.swing.JSpinner jSpennerTahun;
     // End of variables declaration//GEN-END:variables
-}
+
+
+    private boolean isKabisat(int tahun) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    private String formatHari(JTextField HariPertama) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    private void isiComboBulan() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    private void setLocaltionRelativeTo(Object object) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    private void handleTanggalDipilih() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    private static class jCalender1 {
+
+        public jCalender1() {
+        }
+    }
